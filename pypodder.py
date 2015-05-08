@@ -22,6 +22,9 @@ from mutagen.easyid3 import EasyID3
 from urllib.request import urlretrieve as wget
 import urllib
 
+
+configfile = "pypodder.cfg"
+
 feedlistfile = "feed.list"
 feedlist = []
 feedlistformat = ['url','name']
