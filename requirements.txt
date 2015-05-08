@@ -1,2 +1,1 @@
-filemagic==1.6
-pytag==0.1.5
+mutagen==1.28

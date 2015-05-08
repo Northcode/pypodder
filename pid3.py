@@ -9,7 +9,7 @@ def checkmodule(mod):
         needsinstall = True
 
 checkmodule('xml')
-checkmodule('pytag')
+checkmodule('mutagen')
 checkmodule('argparse')
 
 if needsinstall:
@@ -17,7 +17,8 @@ if needsinstall:
     exit()
 
 import xml.etree.cElementTree as xml
-import pytag, os, argparse, sys
+import os, argparse, sys
+from mutagen.easyid3 import EasyID3
 from urllib.request import urlretrieve as wget
 import urllib
 
@@ -27,7 +28,7 @@ feedlistformat = ['url','name']
 
 taglist = {'artist':'%owner%','album':'%podcast%','track':'%title%'}
 
-pytag.interface.MIMETYPE['application/octet-stream'] = (pytag.formats.Mp3Reader, pytag.formats.Mp3)
+# pytag.interface.MIMETYPE['application/octet-stream'] = (pytag.formats.Mp3Reader, pytag.formats.Mp3)
 
 argparser = argparse.ArgumentParser(description="Python podcast manager")
 argparser.add_argument('--verbose','-v', dest='verbose', help='Be verbose', action='store_true')
@@ -96,9 +97,11 @@ class podcast:
     def id3tag(self,item):
         if verbose:
             print("id3taging %s" % item["title"])
-        tags = pytag.Audio(podcastfile(self,item))
-        tags.write_tags({'title': item["title"], 'album': self.title, 'artist': "Podcast" })
-        print(tags.get_tags())
+        tags = EasyID3(podcastfile(self,item))
+        tags['title'] = item["title"]
+        tags['album'] = self.title
+        tags['artist'] = "Podcast"
+        tags.save()
                     
     def downloaditem(self,item):
         if verbose:
