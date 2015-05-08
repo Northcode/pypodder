@@ -17,7 +17,7 @@ if needsinstall:
     exit()
 
 import xml.etree.cElementTree as xml
-import os, argparse, sys
+import os, argparse, sys, string
 from mutagen.easyid3 import EasyID3
 from urllib.request import urlretrieve as wget
 import urllib
@@ -44,12 +44,21 @@ if args.progstyle:
     progstyle = args.progstyle
 if args.taggingonly:
     onlytag = True    
+
+valid_nt_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+valid_tux_chars = "-:[]_.() %s%s" % (string.ascii_letters, string.digits)
+    
+def sanitizefilename(filename):
+    if os.name == "nt":
+        return ''.join([c for c in filename if c in valid_nt_chars])
+    else:
+        return ''.join([c for c in filename if c in valid_tux_chars])
     
 def podcastfile(podcast,item):
-    return os.path.join(podcast.title,item["title"] + ".mp3")
+    return sanitizefilename(os.path.join(podcast.title,item["title"] + ".mp3"))
 
 def feedfile(feed):
-    return feed["name"] + ".rss"
+    return sanitizefilename(feed["name"] + ".rss")
 
 def downloadprogress(blocknum,blocksize,totalsize):
     percent = blocknum * blocksize * 1e2 / totalsize
