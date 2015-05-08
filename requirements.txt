@@ -1,0 +1,2 @@
+filemagic==1.6
+pytag==0.1.5
