@@ -9,6 +9,8 @@ feedlistformat = ['url','name']
 
 taglist = {'artist':'%owner%','album':'%podcast%','track':'%title%'}
 
+pytag.interface.MIMETYPE['application/octet-stream'] = (pytag.formats.Mp3Reader, pytag.formats.Mp3)
+
 argparser = argparse.ArgumentParser(description="Python podcast manager")
 argparser.add_argument('--verbose','-v', dest='verbose', help='Be verbose', action='store_true')
 argparser.add_argument('--progressbarstyle','-ps', dest="progstyle", help="progress bar style (percent,bar,line,percentbar)", type=str)
