@@ -1,3 +1,21 @@
+import importlib
+
+needsinstall = False
+
+def checkmodule(mod):
+    loader = importlib.find_loader(mod)
+    if loader is None:
+        print("Please install python module %s" % mod)
+        needsinstall = True
+
+checkmodule('xml')
+checkmodule('pytag')
+checkmodule('argparse')
+
+if needsinstall:
+    print("exiting")
+    exit()
+
 import xml.etree.cElementTree as xml
 import pytag, os, argparse, sys
 from urllib.request import urlretrieve as wget
