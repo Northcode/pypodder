@@ -128,14 +128,11 @@ if not onlytag:
         if verbose:
             print("downloading items for {}".format(podcast.title))
         for item in podcast.items:
-            if verbose:
-                print(podcastfile(podcast,item))
-            else:
-                if not os.path.isfile(podcastfile(podcast,item)):
-                    podcast.downloaditem(item)
-                elif os.stat(podcastfile(podcast,item)).st_size < int(item["size"]):
-                    print(os.stat(podcastfile(podcast,item)).st_size)
-                    podcast.downloaditem(item)
+            if not os.path.isfile(podcastfile(podcast,item)):
+                podcast.downloaditem(item)
+            elif os.stat(podcastfile(podcast,item)).st_size < int(item["size"]):
+                print(os.stat(podcastfile(podcast,item)).st_size)
+                podcast.downloaditem(item)
 
 # do id3 tagging
 for podcast in podcasts:
