@@ -55,7 +55,7 @@ def sanitizefilename(filename):
         return ''.join([c for c in filename if c in valid_tux_chars])
     
 def podcastfile(podcast,item):
-    return sanitizefilename(os.path.join(podcast.title,item["title"] + ".mp3"))
+    return os.path.join(podcast.title,sanitizefilename(item["title"] + ".mp3"))
 
 def feedfile(feed):
     return sanitizefilename(feed["name"] + ".rss")
