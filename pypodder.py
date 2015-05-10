@@ -71,11 +71,11 @@ def downloadprogress(blocknum,blocksize,totalsize):
         if progstyle == "percent":
             sys.stdout.write("\rdownloading: %d%%" % percent)
         elif progstyle == "bar":
-            sys.stdout.write("\r[%s]" % "#" * barpercent)
+            sys.stdout.write("\r[%s]" % "{0:20s}".format("#" * barpercent))
         elif progstyle == "line":
-            sys.stdout.write("\r%s" % "-" * barpercent)
+            sys.stdout.write("\r%s" % "{0:20s}".format("-" * barpercent))
         elif progstyle == "percentbar":
-            sys.stdout.write("\r[%s] %d%% of total %d" % ("#" * barpercent, percent,totalsize))
+            sys.stdout.write("\r[%s] %d%% of total %d" % ("{0:20s}".format("#" * barpercent), percent,totalsize))
         sys.stdout.flush()
 
 class podcast:
@@ -120,6 +120,7 @@ class podcast:
         if verbose:
             print("downloading %s" % item["title"])
         download = wget(item["download"],podcastfile(self,item),downloadprogress)
+        print("")
 
     def configfile(self):
         return os.path.join(self.title,"podcast.cfg")
