@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import importlib
 
 needsinstall = False
@@ -17,7 +18,7 @@ if needsinstall:
     exit()
 
 import xml.etree.cElementTree as xml
-import os, argparse, sys, string
+import os, argparse, sys, string, configparser
 from mutagen.easyid3 import EasyID3
 from urllib.request import urlretrieve as wget
 import urllib
@@ -114,11 +115,26 @@ class podcast:
         tags['album'] = self.title
         tags['artist'] = "Podcast"
         tags.save()
-                    
+        
     def downloaditem(self,item):
         if verbose:
             print("downloading %s" % item["title"])
         download = wget(item["download"],podcastfile(self,item),downloadprogress)
+
+    def configfile(self):
+        return os.path.join(self.title,"podcast.cfg")
+
+    def readconfig(self):
+        if not os.path.isfile(self.configfile()):
+            with open(self.configfile(), 'w') as f:
+                f.write("# podcast config for %s" % self.title)
+        with open(self.configfile()) as f:
+            for line in f:
+                if not line.startswith('#'):
+                    config = configparser.ConfigParser()
+                    config.read(self.configfile())
+                    self.outformat = ""
+            
 
 # create feed.list if it doesnt exist
 if not os.path.isfile(feedlistfile):
