@@ -18,11 +18,16 @@ if needsinstall:
     exit()
 
 import xml.etree.cElementTree as xml
-import os, argparse, sys, string, configparser
+import os, argparse, sys, string, configparser,signal
 from mutagen.easyid3 import EasyID3
 from urllib.request import urlretrieve as wget
 import urllib
 
+def catchsigint(signum, frame):
+    print("Terminated!")
+    exit()
+
+signal.signal(signal.SIGINT, catchsigint)
 
 configfile = "pypodder.cfg"
 
