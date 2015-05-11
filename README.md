@@ -21,6 +21,18 @@ The feed.list file contains the list podcast feeds to download.
 To add a podcast, find its rss feed (usually somewhere on their webpage), and paste it in the feed.list file followed by the name of the podcast
 When you start pypodder, it can be a good idea to add the "-v" option to give some output, or else it will remain quiet
 
+Configuring each podcast is done through the podcast.cfg file in the podcast directory. 
+You can configure the output of each episode in the file:
+You can use:
+{{podcastname}} - podcast name/title 
+{{episodename}} - episode name/title 
+{{episodenum}}  - episode number 
+{{episodesize}} - size of episode in bytes 
+{{episodedate}} - uploaded date of episode 
+Example format string: 
+** {{podcastname}} - {{episodenum}} {{episodename}}.mp3 ** 
+
+
 ### Issues, report them here!
 
 Please report any issues to the issues page on the repository on [github](https://github.com/Northcode/pypodder/issues)
