@@ -33,6 +33,18 @@ Example format string:
 ** {{podcastname}} - {{episodenum}} {{episodename}}.mp3 **  
 
 
+Configuring each podcast is done through the podcast.cfg file in the podcast directory. 
+You can configure the output of each episode in the file:
+You can use:
+{{podcastname}} - podcast name/title 
+{{episodename}} - episode name/title 
+{{episodenum}}  - episode number 
+{{episodesize}} - size of episode in bytes 
+{{episodedate}} - uploaded date of episode 
+Example format string: 
+** {{podcastname}} - {{episodenum}} {{episodename}}.mp3 ** 
+
+
 ### Issues, report them here!
 
 Please report any issues to the issues page on the repository on [github](https://github.com/Northcode/pypodder/issues)
