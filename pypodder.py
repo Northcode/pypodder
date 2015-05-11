@@ -64,7 +64,16 @@ def sanitizefilename(filename):
         return ''.join([c for c in filename if c in valid_tux_chars])
     
 def podcastfile(podcast,item):
-    return os.path.join(podcast.title,sanitizefilename(item["title"] + ".mp3"))
+    if podcast.customformat:
+        outstr = podcast.outformat;
+        outstr = outstr.replace("{{podcastname}}", podcast.title)
+        outstr = outstr.replace("{{episodename}}", item["title"])
+        outstr = outstr.replace("{{episodenum}}", str(podcast.items.index(item)))
+        outstr = outstr.replace("{{episodesize}}", item["size"])
+        outstr = outstr.replace("{{episodedate}}", item["date"])
+        return outstr
+    else:
+        return os.path.join(podcast.title,sanitizefilename(item["title"] + ".mp3"))
 
 def feedfile(feed):
     return sanitizefilename(feed["name"] + ".rss")
@@ -111,6 +120,7 @@ class podcast:
                             newitem["size"] = tag.get("length")
                     self.items.append(newitem)
         del(xmlreader)
+        self.customformat = False
 
     def id3tag(self,item):
         if verbose:
@@ -132,15 +142,16 @@ class podcast:
 
     def readconfig(self):
         if not os.path.isfile(self.configfile()):
-            with open(self.configfile(), 'w') as f:
-                f.write("# podcast config for %s" % self.title)
+            if verbose:
+                print("no config file for %s" % self.title)
+                return
         with open(self.configfile()) as f:
             for line in f:
                 if not line.startswith('#'):
                     config = configparser.ConfigParser()
                     config.read(self.configfile())
-                    self.outformat = ""
-            
+                    self.outformat = config['podcast']['outputformat']
+                    self.customformat = config['podcast']['useformat']
 
 # create feed.list if it doesnt exist
 if not os.path.isfile(feedlistfile):
@@ -176,6 +187,13 @@ for podcast in podcasts:
         if verbose:
             print("creating directory for {}".format(podcast.title))
         os.makedirs(podcast.title)
+    if not os.path.isfile(podcast.configfile()): # create config files if they don't exist
+        config = configparser.ConfigParser()
+        config['podcast'] = { 'outputformat' : '', 'useformat' : False }
+        with open(podcast.configfile(),'w') as f:
+            f.write("# config file for podcast %s\n" % podcast.title)
+            config.write(f)
+    podcast.readconfig()    
 
 # download new episodes
 if not onlytag:
