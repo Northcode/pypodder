@@ -56,8 +56,13 @@ if args.taggingonly:
 valid_nt_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
 valid_tux_chars = "-:[]_.() %s%s" % (string.ascii_letters, string.digits)
 
-def formatsize(size):
-    
+def formatsize(num):
+    suffix = "B"
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
 
 def sanitizefilename(filename):
     if os.name == "nt":
@@ -71,7 +76,7 @@ def podcastfile(podcast,item):
         outstr = outstr.replace("{{podcastname}}", podcast.title)
         outstr = outstr.replace("{{episodename}}", item["title"])
         outstr = outstr.replace("{{episodenum}}", str(item["num"]))
-        outstr = outstr.replace("{{episodesize}}", str(item["size"]))
+        outstr = outstr.replace("{{episodesize}}", str(formatsize(item["size"])))
         outstr = outstr.replace("{{episodedate}}", item["date"])
         return outstr
     else:
@@ -91,7 +96,7 @@ def downloadprogress(blocknum,blocksize,totalsize):
         elif progstyle == "line":
             sys.stdout.write("\r%s" % "{0:20s}".format("-" * barpercent))
         elif progstyle == "percentbar":
-            sys.stdout.write("\r[%s] %d%% of total %d" % ("{0:20s}".format("#" * barpercent), percent,totalsize))
+            sys.stdout.write("\r[%s] %d%% of total %s" % ("{0:20s}".format("#" * barpercent), percent,formatsize(totalsize)))
         sys.stdout.flush()
 
 def item_downloaded(podcast,item):
