@@ -38,15 +38,17 @@ feedlistformat = ['url','name']
 taglist = {'artist':'%owner%','album':'%podcast%','track':'%title%'}
 
 argparser = argparse.ArgumentParser(description="Python podcast manager")
-argparser.add_argument('--verbose','-v', dest='verbose', help='Be verbose', action='store_true')
-argparser.add_argument('--progressbarstyle','-ps', dest="progstyle", help="progress bar style (percent,bar,line,percentbar)", type=str)
+argparser.add_argument('--verbose','-v', dest='verbose', help='Be verbose', type=int, choices=[0,1,2,3])
+argparser.add_argument('--progressbarstyle','-ps', dest="progstyle", help="progress bar style", type=str, choices=["percent","bar","line","percentbar"])
 argparser.add_argument('--taggingonly','-oid3', help="Only do tagging", action='store_true')
+argparser.add_argument("--update",action='store_true')
+argparser.add_argument("--download",'-dl', help="download episode", type=str)
+argparser.add_argument("--list-episodes","-l", help="list episodes", type=int)
+argparser.add_argument("--list-feeds","-lf", help="list feeds", action="store_true")
 args = argparser.parse_args()
-verbose = False
+verbose = args.verbose
 progstyle = "percent" # "percent", "bar", "line", "percentbar"
 onlytag = False
-if args.verbose:
-    verbose = True
 if args.progstyle:
     progstyle = args.progstyle
 if args.taggingonly:
@@ -67,7 +69,7 @@ def podcastfile(podcast,item):
         outstr = outstr.replace("{{podcastname}}", podcast.title)
         outstr = outstr.replace("{{episodename}}", item["title"])
         outstr = outstr.replace("{{episodenum}}", str(item["num"]))
-        outstr = outstr.replace("{{episodesize}}", item["size"])
+        outstr = outstr.replace("{{episodesize}}", str(item["size"]))
         outstr = outstr.replace("{{episodedate}}", item["date"])
         return outstr
     else:
@@ -79,7 +81,7 @@ def feedfile(feed):
 def downloadprogress(blocknum,blocksize,totalsize):
     percent = blocknum * blocksize * 1e2 / totalsize
     barpercent = int(percent / 5)
-    if verbose:
+    if verbose > 0:
         if progstyle == "percent":
             sys.stdout.write("\rdownloading: %d%%" % percent)
         elif progstyle == "bar":
@@ -123,7 +125,7 @@ class podcast:
         self.customformat = False
 
     def id3tag(self,item):
-        if verbose:
+        if verbose > 1:
             print("id3taging %s" % item["title"])
         tags = EasyID3(podcastfile(self,item))
         tags['title'] = item["title"]
@@ -132,7 +134,7 @@ class podcast:
         tags.save()
         
     def downloaditem(self,item):
-        if verbose:
+        if verbose > 1:
             print("downloading %s" % item["title"])
         download = wget(item["download"],podcastfile(self,item),downloadprogress)
         print("")
@@ -142,7 +144,7 @@ class podcast:
 
     def readconfig(self):
         if not os.path.isfile(self.configfile()):
-            if verbose:
+            if verbose > 1:
                 print("no config file for %s" % self.title)
                 return
         with open(self.configfile()) as f:
@@ -158,7 +160,7 @@ if not os.path.isfile(feedlistfile):
         f.write("# Store your podcasts in here with this format: <url> <podcast name>\n# The first space separates the url from the name, all other spaces are ignored and put in the name")
         
 #load feedlist
-if verbose:
+if verbose > 1:
     print("Reading feedlist:")
 with open(feedlistfile) as f:
     for line in f:
@@ -171,10 +173,10 @@ podcasts = []
 
 #load all podcasts in feedlist
 for feed in feedlist:
-    if verbose:
+    if verbose > 1:
         print(feed["name"])
     if not os.path.isfile(feedfile(feed)): # download feed if it doesn't exist
-        if verbose:
+        if verbose > 2:
             print("downloading feed for {}".format(feed["name"]))
         wget(feed["url"],feedfile(feed),downloadprogress)
     podcasts.append(podcast(xml.ElementTree(file=feedfile(feed))))
@@ -183,7 +185,7 @@ for feed in feedlist:
 for podcast in podcasts:
     # check if podcast directory exists
     if not os.path.isdir(podcast.title):
-        if verbose:
+        if verbose > 2:
             print("creating directory for {}".format(podcast.title))
         os.makedirs(podcast.title)
     if not os.path.isfile(podcast.configfile()): # create config files if they don't exist
@@ -197,17 +199,18 @@ for podcast in podcasts:
 # download new episodes
 if not onlytag:
     for podcast in podcasts:
-        if verbose:
+        if verbose > 1:
             print("downloading items for {}".format(podcast.title))
         for item in podcast.items:
             if not item["size"]:
+                if verbose > 2:
+                    print("checking file size for '{}' via http, not provided from feed".format(item["title"]))
                 with urllib.request.urlopen(item["download"]) as site:
                     item["size"] = int(site.getheader("Content-Length"))
                     site.close()
             if not os.path.isfile(podcastfile(podcast,item)):
                 podcast.downloaditem(item)
             elif os.stat(podcastfile(podcast,item)).st_size < int(item["size"]):
-                print(os.stat(podcastfile(podcast,item)).st_size)
                 podcast.downloaditem(item)
 
 # do id3 tagging
