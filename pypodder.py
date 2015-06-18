@@ -38,7 +38,7 @@ feedlistformat = ['url','name']
 taglist = {'artist':'%owner%','album':'%podcast%','track':'%title%'}
 
 argparser = argparse.ArgumentParser(description="Python podcast manager",epilog = "By default pypodder with download all episodes listed in your feeds, to override this behaviour see the --download and --list-* options")
-argparser.add_argument('--verbose','-v', dest='verbose', help='Be verbose', type=int, choices=[0,1,2,3])
+argparser.add_argument('--verbose','-v', dest='verbose', help='Be verbose', type=int, choices=[0,1,2,3], default=0)
 argparser.add_argument('--progressbarstyle','-ps', dest="progstyle", help="progress bar style", type=str, choices=["percent","bar","line","percentbar"],default="percentbar")
 argparser.add_argument('--taggingonly','-oid3', help="Only do tagging", action='store_true')
 argparser.add_argument("--update",action='store_true')
@@ -55,7 +55,10 @@ if args.taggingonly:
     
 valid_nt_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
 valid_tux_chars = "-:[]_.() %s%s" % (string.ascii_letters, string.digits)
+
+def formatsize(size):
     
+
 def sanitizefilename(filename):
     if os.name == "nt":
         return ''.join([c for c in filename if c in valid_nt_chars])
