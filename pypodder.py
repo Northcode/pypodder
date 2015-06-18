@@ -62,7 +62,7 @@ def sanitizefilename(filename):
         return ''.join([c for c in filename if c in valid_tux_chars])
     
 def podcastfile(podcast,item):
-    if podcast.customformat:
+    if podcast.outformat:
         outstr = podcast.outformat
         outstr = outstr.replace("{{podcastname}}", podcast.title)
         outstr = outstr.replace("{{episodename}}", item["title"])
@@ -150,8 +150,7 @@ class podcast:
                 if not line.startswith('#'):
                     config = configparser.ConfigParser()
                     config.read(self.configfile())
-                    self.outformat = str(config['podcast']['outputformat'])
-                    self.customformat = bool(config['podcast']['useformat'])
+                    self.outformat = config['podcast'].get('outputformat',False)
 
 # create feed.list if it doesnt exist
 if not os.path.isfile(feedlistfile):
@@ -201,6 +200,10 @@ if not onlytag:
         if verbose:
             print("downloading items for {}".format(podcast.title))
         for item in podcast.items:
+            if not item["size"]:
+                with urllib.request.urlopen(item["download"]) as site:
+                    item["size"] = int(site.getheader("Content-Length"))
+                    site.close()
             if not os.path.isfile(podcastfile(podcast,item)):
                 podcast.downloaditem(item)
             elif os.stat(podcastfile(podcast,item)).st_size < int(item["size"]):
