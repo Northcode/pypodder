@@ -214,7 +214,7 @@ if args.list_episodes >= 0:
         print("{}: {}".format(key,item["title"]))
     exit()
 
-if len(args.download) == 2:
+if args.download and len(args.download) == 2:
     podcastid = args.download[0]
     episodeid = args.download[1]
     podcast = podcasts[podcastid]
