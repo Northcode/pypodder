@@ -37,8 +37,6 @@ feedlistformat = ['url','name']
 
 taglist = {'artist':'%owner%','album':'%podcast%','track':'%title%'}
 
-# pytag.interface.MIMETYPE['application/octet-stream'] = (pytag.formats.Mp3Reader, pytag.formats.Mp3)
-
 argparser = argparse.ArgumentParser(description="Python podcast manager")
 argparser.add_argument('--verbose','-v', dest='verbose', help='Be verbose', action='store_true')
 argparser.add_argument('--progressbarstyle','-ps', dest="progstyle", help="progress bar style (percent,bar,line,percentbar)", type=str)
@@ -65,10 +63,10 @@ def sanitizefilename(filename):
     
 def podcastfile(podcast,item):
     if podcast.customformat:
-        outstr = podcast.outformat;
+        outstr = podcast.outformat
         outstr = outstr.replace("{{podcastname}}", podcast.title)
         outstr = outstr.replace("{{episodename}}", item["title"])
-        outstr = outstr.replace("{{episodenum}}", str(podcast.items.index(item)))
+        outstr = outstr.replace("{{episodenum}}", str(item["num"]))
         outstr = outstr.replace("{{episodesize}}", item["size"])
         outstr = outstr.replace("{{episodedate}}", item["date"])
         return outstr
@@ -119,6 +117,8 @@ class podcast:
                             newitem["download"] = tag.get("url")
                             newitem["size"] = tag.get("length")
                     self.items.append(newitem)
+        for item in self.items:
+            item["num"] = len(self.items) - self.items.index(item)
         del(xmlreader)
         self.customformat = False
 
@@ -150,8 +150,8 @@ class podcast:
                 if not line.startswith('#'):
                     config = configparser.ConfigParser()
                     config.read(self.configfile())
-                    self.outformat = config['podcast']['outputformat']
-                    self.customformat = config['podcast']['useformat']
+                    self.outformat = str(config['podcast']['outputformat'])
+                    self.customformat = bool(config['podcast']['useformat'])
 
 # create feed.list if it doesnt exist
 if not os.path.isfile(feedlistfile):
