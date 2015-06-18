@@ -37,14 +37,14 @@ feedlistformat = ['url','name']
 
 taglist = {'artist':'%owner%','album':'%podcast%','track':'%title%'}
 
-argparser = argparse.ArgumentParser(description="Python podcast manager")
+argparser = argparse.ArgumentParser(description="Python podcast manager",epilog = "By default pypodder with download all episodes listed in your feeds, to override this behaviour see the --download and --list-* options")
 argparser.add_argument('--verbose','-v', dest='verbose', help='Be verbose', type=int, choices=[0,1,2,3])
 argparser.add_argument('--progressbarstyle','-ps', dest="progstyle", help="progress bar style", type=str, choices=["percent","bar","line","percentbar"],default="percentbar")
 argparser.add_argument('--taggingonly','-oid3', help="Only do tagging", action='store_true')
 argparser.add_argument("--update",action='store_true')
-argparser.add_argument("--download",'-dl', help="download episode, use -l to find episode ids", type=int, nargs=2, metavar=('feed-id','episode-num'))
-argparser.add_argument("--list-episodes","-l", help="list episodes, use -lf to find feed ids", type=int, default=-1,metavar="feed-id")
-argparser.add_argument("--list-feeds","-lf", help="list feeds", action="store_true")
+argparser.add_argument("--download",'-dl', help="download one episode and exit, use -l to find episode ids", type=int, nargs=2, metavar=('feed-id','episode-num'))
+argparser.add_argument("--list-episodes","-l", help="list episodes and exit, use -lf to find feed ids", type=int, default=-1,metavar="feed-id")
+argparser.add_argument("--list-feeds","-lf", help="list feeds and exit", action="store_true")
 args = argparser.parse_args()
 verbose = args.verbose
 progstyle = "percent" # "percent", "bar", "line", "percentbar"
