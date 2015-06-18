@@ -39,21 +39,20 @@ taglist = {'artist':'%owner%','album':'%podcast%','track':'%title%'}
 
 argparser = argparse.ArgumentParser(description="Python podcast manager")
 argparser.add_argument('--verbose','-v', dest='verbose', help='Be verbose', type=int, choices=[0,1,2,3])
-argparser.add_argument('--progressbarstyle','-ps', dest="progstyle", help="progress bar style", type=str, choices=["percent","bar","line","percentbar"])
+argparser.add_argument('--progressbarstyle','-ps', dest="progstyle", help="progress bar style", type=str, choices=["percent","bar","line","percentbar"],default="percentbar")
 argparser.add_argument('--taggingonly','-oid3', help="Only do tagging", action='store_true')
 argparser.add_argument("--update",action='store_true')
-argparser.add_argument("--download",'-dl', help="download episode", type=str)
-argparser.add_argument("--list-episodes","-l", help="list episodes", type=int)
+argparser.add_argument("--download",'-dl', help="download episode, use -l to find episode ids", type=int, nargs=2, metavar=('feed-id','episode-num'))
+argparser.add_argument("--list-episodes","-l", help="list episodes, use -lf to find feed ids", type=int, default=-1,metavar="feed-id")
 argparser.add_argument("--list-feeds","-lf", help="list feeds", action="store_true")
 args = argparser.parse_args()
 verbose = args.verbose
 progstyle = "percent" # "percent", "bar", "line", "percentbar"
 onlytag = False
-if args.progstyle:
-    progstyle = args.progstyle
+progstyle = args.progstyle
 if args.taggingonly:
-    onlytag = True    
-
+    onlytag = True
+    
 valid_nt_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
 valid_tux_chars = "-:[]_.() %s%s" % (string.ascii_letters, string.digits)
     
@@ -92,6 +91,16 @@ def downloadprogress(blocknum,blocksize,totalsize):
             sys.stdout.write("\r[%s] %d%% of total %d" % ("{0:20s}".format("#" * barpercent), percent,totalsize))
         sys.stdout.flush()
 
+def item_downloaded(podcast,item):
+    if not item["size"]:
+        if verbose > 2:
+            print("checking file size for '{}' via http, not provided from feed".format(item["title"]))
+        with urllib.request.urlopen(item["download"]) as site:
+            item["size"] = int(site.getheader("Content-Length"))
+            site.close()
+    return (os.path.isfile(podcastfile(podcast,item)) and (not os.stat(podcastfile(podcast,item)).st_size < int(item["size"])))
+
+        
 class podcast:
     def __init__(self,xmlreader):
         self.items = []
@@ -122,7 +131,6 @@ class podcast:
         for item in self.items:
             item["num"] = len(self.items) - self.items.index(item)
         del(xmlreader)
-        self.customformat = False
 
     def id3tag(self,item):
         if verbose > 1:
@@ -171,11 +179,16 @@ with open(feedlistfile) as f:
 
 podcasts = []
 
+if args.list_feeds:
+    for key,feed in list(enumerate(feedlist)):
+        print("{}: {}".format(key,feed["name"]))
+    exit()
+
 #load all podcasts in feedlist
 for feed in feedlist:
     if verbose > 1:
         print(feed["name"])
-    if not os.path.isfile(feedfile(feed)): # download feed if it doesn't exist
+    if not os.path.isfile(feedfile(feed)) or args.update: # download feed if it doesn't exist
         if verbose > 2:
             print("downloading feed for {}".format(feed["name"]))
         wget(feed["url"],feedfile(feed),downloadprogress)
@@ -196,21 +209,27 @@ for podcast in podcasts:
             config.write(f)
     podcast.readconfig()    
 
+if args.list_episodes >= 0:
+    for key,item in list(enumerate(podcasts[args.list_episodes].items)):
+        print("{}: {}".format(key,item["title"]))
+    exit()
+
+if len(args.download) == 2:
+    podcastid = args.download[0]
+    episodeid = args.download[1]
+    podcast = podcasts[podcastid]
+    item = podcast.items[episodeid]
+    if not item_downloaded(podcast,item):
+        podcast.downloaditem(item)
+    exit()
+    
 # download new episodes
 if not onlytag:
     for podcast in podcasts:
         if verbose > 1:
             print("downloading items for {}".format(podcast.title))
         for item in podcast.items:
-            if not item["size"]:
-                if verbose > 2:
-                    print("checking file size for '{}' via http, not provided from feed".format(item["title"]))
-                with urllib.request.urlopen(item["download"]) as site:
-                    item["size"] = int(site.getheader("Content-Length"))
-                    site.close()
-            if not os.path.isfile(podcastfile(podcast,item)):
-                podcast.downloaditem(item)
-            elif os.stat(podcastfile(podcast,item)).st_size < int(item["size"]):
+            if not item_downloaded(podcast,item):
                 podcast.downloaditem(item)
 
 # do id3 tagging
