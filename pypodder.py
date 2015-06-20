@@ -45,6 +45,7 @@ argparser.add_argument("--update",action='store_true')
 argparser.add_argument("--download",'-dl', help="download one episode and exit, use -l to find episode ids", type=int, nargs=2, metavar=('feed-id','episode-num'))
 argparser.add_argument("--list-episodes","-l", help="list episodes and exit, use -lf to find feed ids", type=int, default=-1,metavar="feed-id")
 argparser.add_argument("--list-feeds","-lf", help="list feeds and exit", action="store_true")
+argparser.add_argument("--describe","-d", help="show episode description", type=int, nargs=2, metavar=("feed-id","episode-id"))
 args = argparser.parse_args()
 verbose = args.verbose
 progstyle = "percent" # "percent", "bar", "line", "percentbar"
@@ -135,6 +136,8 @@ class podcast:
                         elif tag.tag == "enclosure":
                             newitem["download"] = tag.get("url")
                             newitem["size"] = tag.get("length")
+                        elif tag.tag == "description":
+                            newitem["description"] = tag.text
                     self.items.append(newitem)
         for item in self.items:
             item["num"] = len(self.items) - self.items.index(item)
@@ -222,6 +225,14 @@ if args.list_episodes >= 0:
         print("{}: {}".format(key,item["title"]))
     exit()
 
+if args.describe and len(args.describe) == 2:
+    podcastid = args.describe[0]
+    episodeid = args.describe[1]
+    podcast = podcasts[podcastid]
+    item = podcast.items[episodeid]
+    print("{}\n{}\npublished: {}".format(item["title"],item["link"],item["date"]))
+    exit()
+    
 if args.download and len(args.download) == 2:
     podcastid = args.download[0]
     episodeid = args.download[1]
