@@ -120,10 +120,14 @@ class podcast:
                     self.title = item.text
                 elif item.tag == "link":
                     self.link = item.text
+                elif item.tag == "subtitle":
+                    self.subtitle = item.text
                 elif item.tag == "itunes:owner":
                     self.owner = item.getchildren()[0].text # itunes owner name
                 elif item.tag == "description":
                     self.description = item.text
+                elif item.tag == "updated":
+                    self.updated = item.text
                 elif item.tag == "item":
                     newitem = {}
                     for tag in item:
@@ -139,6 +143,18 @@ class podcast:
                         elif tag.tag == "description":
                             newitem["description"] = tag.text
                     self.items.append(newitem)
+                elif item.tag == "entry":
+                    newitem = {}
+                    for tag in item:
+                        if tag.tag == "title":
+                            newitem["title"] = tag.text
+                        elif tag.tag == "updated" or tag.tag == "pubDate":
+                            newitem["date"] = tag.text
+                        elif tag.tag == "summary" or tag.tag == "description":
+                            newitem["description"] = tag.text
+                        elif tag.tag == "enclosure":
+                            newitem["download"] = tag.get("url")
+                            newitem["size"] = tag.get("length")
         for item in self.items:
             item["num"] = len(self.items) - self.items.index(item)
         del(xmlreader)
